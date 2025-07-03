@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WTC AI Assistant</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: relative;
+    }
+    .chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .bubble {
+      max-width: 80%;
+      padding: 10px 15px;
+      border-radius: 15px;
+      margin: 5px 0;
+      white-space: pre-line;
+    }
+    .user {
+      background: #d1fae5;
+      align-self: flex-end;
+      text-align: right;
+    }
+    .bot {
+      background: #e5e7eb;
+      align-self: flex-start;
+      text-align: left;
+    }
+    .input-container {
+      display: flex;
+      padding: 10px;
+      background: white;
+      border-top: 1px solid #ddd;
+    }
+    #userInput {
+      flex: 1;
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-left: 10px;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: none;
+      background: #2563eb;
+      color: white;
+    }
+    #logoutBtn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    #userInfo {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-weight: bold;
+      color: #1f2937;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- แสดงชื่อผู้ใช้ -->
+  <div id="userInfo"></div>
+
+  <!-- ปุ่มออกจากระบบ -->
+  <button id="logoutBtn" onclick="logout()">ออกจากระบบ</button>
+
+  <!-- กล่องแชท -->
+  <div id="chatContainer" class="chat"></div>
+
+  <!-- กล่องพิมพ์ -->
+  <div class="input-container">
+    <input
+      id="userInput"
+      type="text"
+      placeholder="ถามอะไรมาก็ได้..."
+      onkeydown="if(event.key==='Enter'){sendMessage()}"
+    />
+    <button onclick="sendMessage()">ส่ง</button>
+  </div>
+
+  <script>
+    // ✅ ตรวจสอบว่ามี user_id
+    const userId = localStorage.getItem("user_id");
+    const userName = localStorage.getItem("user_name");
+
+    if (!userId) {
+      window.location.href = "/static/login.html";
+    }
+
+    // ✅ แสดงชื่อผู้ใช้
+    document.getElementById("userInfo").innerText =
+      "สวัสดีคุณ " + (userName || "ผู้ใช้งาน");
+
+    // ✅ ปุ่ม logout
+    function logout() {
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("user_name");
+      window.location.href = "/static/login.html";
+    }
+
+    // ✅ ส่งคำถาม
+    async function sendMessage() {
+      const userInput = document.getElementById("userInput").value;
+      if (!userInput.trim()) return;
+
+      appendMessage("user", userInput);
+      document.getElementById("userInput").value = "";
+
+      const response = await fetch("/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          question: userInput
+        }),
+      });
+
+      const data = await response.json();
+      appendMessage("bot", data.answer);
+    }
+
+    // ✅ แสดงข้อความใน chat bubble
+    function appendMessage(sender, text) {
+      const chatContainer = document.getElementById("chatContainer");
+      const msg = document.createElement("div");
+      msg.className = sender === "user" ? "bubble user" : "bubble bot";
+      msg.innerHTML = text;
+      chatContainer.appendChild(msg);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+  </script>
+</body>
+</html>

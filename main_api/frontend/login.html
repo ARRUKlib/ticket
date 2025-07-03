@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - WTC AI</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f0f4f8; }
+    .form-box { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+    input, button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 5px; }
+    button { background: #2563eb; color: white; font-weight: bold; border: none; }
+  </style>
+</head>
+<body>
+  <div class="form-box">
+    <h2>เข้าสู่ระบบ</h2>
+    <input id="email" type="email" placeholder="อีเมล">
+    <input id="password" type="password" placeholder="รหัสผ่าน">
+    <button onclick="login()">เข้าสู่ระบบ</button>
+    <div id="result" style="color: red; margin-top: 10px;"></div>
+    <p style="text-align: center;">ยังไม่มีบัญชี? <a href="/static/register.html">สมัครสมาชิก</a></p>
+  </div>
+
+  <script>
+    async function login() {
+      const res = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value
+        })
+      });
+
+      const data = await res.json();
+      if (res.status === 200) {
+        localStorage.setItem("user_id", data.user_id);
+        localStorage.setItem("user_name", data.user_name);
+        window.location.href = "/";
+      } else {
+        document.getElementById('result').innerText = data.detail || "เข้าสู่ระบบไม่สำเร็จ";
+      }
+    }
+  </script>
+</body>
+</html>
